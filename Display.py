@@ -46,13 +46,13 @@ class Display:
         self.window_diameter_list: List[float] = []
         self.window_angle_list: List[float] = []
         self.window_color_list: List[Tuple[float, float, float, float]] = []
-        self.window_collection: collections.EllipseCollection = None
+        self.window_collection: Optional[collections.EllipseCollection] = None
 
         # start off with containers for all parts of the graphics for attractor stars.
         self.attractor_star_positions = self.window_positions
         self.attractor_star_size_list: List[float] = []
         self.attractor_star_color_list: List[Tuple[float, float, float, float]] = []
-        self.attractor_star_collection: collections.StarPolygonCollection = None
+        self.attractor_star_collection: Optional[collections.StarPolygonCollection] = None
 
         # multithreading stuff...
         self.lock = Lock()
@@ -112,30 +112,28 @@ class Display:
                 self.attractor_star_positions.append(a.location)
             self.attractor_star_size_list = [(2*STAR_RADIUS**2) for _ in range(len(attractors))]
 
-            # send this information to matplotlib's graph.
-            if self.show_windows:
+            # build a collection of windows in matplotlib
+            if self.show_windows and self.window_collection is None:
                 self.window_collection = collections.EllipseCollection(widths=np.array([]),
                                                                        heights=np.array([]),
                                                                        angles=np.array([]),
                                                                        offsets=np.array([]).reshape(-1, 2),
                                                                        units="xy",
                                                                        offset_transform=self.ax.transData)
-                self.window_collection.set_color(self.window_color_list)
-                self.window_collection.set_widths(self.window_diameter_list)
-                self.window_collection.set_heights(self.window_diameter_list)
-                self.window_collection.set_angles(self.window_angle_list)
-                self.window_collection.set_offsets(self.window_positions)
                 self.ax.add_collection(self.window_collection)
 
-            self.attractor_star_collection = collections.StarPolygonCollection(numsides=5,
-                                                                               rotation=0.0,
-                                                                               sizes=np.array([]),
-                                                                               offsets=np.array([]).reshape(-1, 2),
-                                                                               offset_transform=self.ax.transData)
-            self.attractor_star_collection.set_color(self.attractor_star_color_list)
-            self.attractor_star_collection.set_sizes(self.attractor_star_size_list)
-            self.attractor_star_collection.set_offsets(self.attractor_star_positions)
-            self.ax.add_collection(self.attractor_star_collection)
+            # build a collection of stars in matplotlib.
+            if self.attractor_star_collection is None:
+                self.attractor_star_collection = collections.StarPolygonCollection(numsides=5,
+                                                                                   rotation=0.0,
+                                                                                   sizes=np.array([]),
+                                                                                   offsets=np.array([]).reshape(-1, 2),
+                                                                                   offset_transform=self.ax.transData)
+                self.ax.add_collection(self.attractor_star_collection)
+
+        # now send the specific information to matplotlib about these shapes.
+        self.update_attractor_collections_in_matplotlib()
+
 
     def set_data(self, data: List[Datum]):
         if data is None or len(data) == 0:
@@ -175,12 +173,17 @@ class Display:
                 self.attractor_star_positions.append(attractor.location)
                 self.attractor_star_size_list.append(2 * STAR_RADIUS ** 2)
                 # tell matplotlib about these changed lists.
-                if self.show_windows:
-                    self.window_collection.set_color(self.window_color_list)
-                    self.window_collection.set_widths(self.window_diameter_list)
-                    self.window_collection.set_heights(self.window_diameter_list)
-                    self.window_collection.set_angles(self.window_angle_list)
-                    self.window_collection.set_offsets(self.window_positions)
+            self.update_attractor_collections_in_matplotlib()
+
+    def update_attractor_collections_in_matplotlib(self):
+        with self.lock:
+            if self.show_windows and self.window_collection is not None:
+                self.window_collection.set_color(self.window_color_list)
+                self.window_collection.set_widths(self.window_diameter_list)
+                self.window_collection.set_heights(self.window_diameter_list)
+                self.window_collection.set_angles(self.window_angle_list)
+                self.window_collection.set_offsets(self.window_positions)
+            if self.attractor_star_collection is not None:
                 self.attractor_star_collection.set_color(self.attractor_star_color_list)
                 self.attractor_star_collection.set_sizes(self.attractor_star_size_list)
                 self.attractor_star_collection.set_offsets(self.attractor_star_positions)
@@ -188,11 +191,21 @@ class Display:
     def attractor_at_index_has_changed_position(self, idx: int):
         with self.lock:
             self.attractor_star_positions[idx] = self.attractors[idx].location
+        self.update_attractor_collections_in_matplotlib()
+
+    def removed_attractor_at_index(self, idx: int):
+        with self.lock:
+            if len(self.attractor_star_positions) == 1:
+                raise Exception("You should not remove the last attractor!")
             if self.show_windows:
-                self.window_collection.set_offsets(self.window_positions)
-            self.attractor_star_collection.set_offsets(self.attractor_star_positions)
-
-
+                self.window_color_list.pop(-1) # we can just remove the last item if they're all the same.
+                self.window.diameter_list.pop(-1)
+                del(self.window_positions[idx]) # this one varies by attractor, so we need to remove the right one.
+                self.window_angle_list.pop(-1)
+            del(self.attractor_star_color_list[idx])
+            self.attractor_star_size_list.pop(-1)
+            del(self.attractor_star_positions[idx])
+        self.update_attractor_collections_in_matplotlib()
 
     def append_data(self, datum:Datum):
         if self.data is None:
