@@ -36,10 +36,13 @@ class Cluster:
     def attractor_id(self):
         return self.__attractor_id
 
+    def __len__(self) -> int:
+        return len(self.__data_list)
+
     def add_datum(self, datum:Datum):
         old_N = len(self.__data_list)
-        self.__mean_location = ((old_N*self.__mean_location[0])/(old_N+1),
-                                (old_N*self.__mean_location[1])/(old_N+1))
+        self.__mean_location = ((old_N*self.__mean_location[0] + datum.location[0])/(old_N+1),
+                                (old_N*self.__mean_location[1] + datum.location[1])/(old_N+1))
         self.__data_list.append(datum)
         datum.attractor_num = self.__attractor_id
 
@@ -47,4 +50,19 @@ class Cluster:
         for d in other.data_list:
             self.add_datum(d)
 
+    def remove_datum(self, datum:Datum):
+        if len(self.__data_list) == 1:
+            raise Exception("Cannot create an empty cluster. Delete this cluster, instead.")
+        if datum in self.__data_list:
+            old_N = len(self.__data_list)
+            self.__mean_location= ((old_N * self.__mean_location[0] - datum.location[0])/(old_N-1),
+                                   (old_N * self.__mean_location[1] - datum.location[1])/(old_N-1))
+            self.__data_list.remove(datum)
+        else:
+            raise Exception(f"Asked to remove {datum} from cluster, but it is not contained in the cluster.")
 
+    def __delete__(self, instance):
+        self.remove_datum(instance)
+
+    def __repr__(self) -> str:
+        return f"Cluster {self.__attractor_id} @ {self.__mean_location} contains {self.__data_list}"
