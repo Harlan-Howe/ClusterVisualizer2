@@ -17,7 +17,7 @@ class ClusterRunner:
         self.data_bounds = {"x_min":0.0, "y_min":0.0, "x_max":1.0, "y_max":1.0}
         self.attractors:Optional[List[Attractor]] = None
         self.clusters:Optional[List[Cluster]] = None
-        self.display = Display(self.color_map)
+        self.display = Display(self.color_map,show_windows=True)
         self.iteration_counter = 0
         self.animation_function_list: List[FuncAnimation] = [] # this is the pointer to control the animation loop.
 
@@ -31,7 +31,9 @@ class ClusterRunner:
                                 invert_y=True)
 
         # if you want attractors, activate the following:
-        # self.create_starting_attractors(5)
+        self.create_starting_attractors(5)
+        print(self.attractors)
+        print(self.color_map)
 
         if self.attractors is not None:
             self.display.set_attractors(self.attractors)
@@ -67,8 +69,8 @@ class ClusterRunner:
             attractors.append(Attractor(color_id=col,
                                         location=(random.random()*(self.data_bounds["x_max"]-self.data_bounds["x_min"])+
                                                                                             self.data_bounds["x_min"],
-                                                  random.random()*(self.data_bounds["x_max"]-self.data_bounds["x_min"])+
-                                                                                            self.data_bounds["x_min"])))
+                                                  random.random()*(self.data_bounds["y_max"]-self.data_bounds["y_min"])+
+                                                                                            self.data_bounds["y_min"])))
         self.attractors=attractors
 
     def create_starting_clusters(self):
