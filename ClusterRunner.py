@@ -21,8 +21,14 @@ class ClusterRunner:
         self.iteration_counter = 0
         self.animation_function_list: List[FuncAnimation] = [] # this is the pointer to control the animation loop.
 
-        self.load_data("mydata.txt")
+        self.load_data("coordinates.txt")
         self.display.set_data(self.data)
+        print(f"{self.data_bounds=}")
+        self.display.set_bounds(min_x= self.data_bounds["x_min"],
+                                max_x= self.data_bounds["x_max"],
+                                min_y= self.data_bounds["y_min"],
+                                max_y= self.data_bounds["y_max"],
+                                invert_y=True)
 
         # if you want attractors, activate the following:
         # self.create_starting_attractors(5)
@@ -34,7 +40,7 @@ class ClusterRunner:
         # self.create_starting_clusters()
 
 
-
+        print("Finished init")
 
 
     def load_data(self, filename:str):
@@ -46,7 +52,7 @@ class ClusterRunner:
                 self.data_bounds["x_min"] = min(self.data_bounds["x_min"], float(parts[0]))
                 self.data_bounds["x_max"] = max(self.data_bounds["x_max"], float(parts[0]))
                 self.data_bounds["y_min"] = min(self.data_bounds["y_min"], float(parts[1]))
-                self.data_bounds["y_max"] = min(self.data_bounds["y_max"], float(parts[1]))
+                self.data_bounds["y_max"] = max(self.data_bounds["y_max"], float(parts[1]))
 
     def create_starting_attractors(self, K:int):
         """
@@ -87,6 +93,7 @@ class ClusterRunner:
         self.display.start_animation(animation_list=self.animation_function_list)
 
     def pause_animation(self):
+        print(f"{self.animation_function_list=}")
         if len(self.animation_function_list) > 0:
             self.animation_function_list[0].pause()
 
