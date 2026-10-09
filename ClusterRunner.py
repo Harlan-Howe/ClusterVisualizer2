@@ -42,8 +42,6 @@ class ClusterRunner:
         # self.create_starting_clusters()
 
 
-        print("Finished init")
-
 
     def load_data(self, filename:str):
         with open(filename, "r") as inputFile:
@@ -87,15 +85,13 @@ class ClusterRunner:
 
     def start(self):
         print("Starting.")
-        # Tell the visualizer what method should be called each time it is about to update the graph.
+        # Tell the Display what method should be called each time it is about to update the graph.
         self.display.set_looping_function(self.iterate_loop)
 
-        # Tell the visualizer to begin animating.
-
+        # Tell the Disualizer to begin animating.
         self.display.start_animation(animation_list=self.animation_function_list)
 
     def pause_animation(self):
-        print(f"{self.animation_function_list=}")
         if len(self.animation_function_list) > 0:
             self.animation_function_list[0].pause()
 
@@ -109,9 +105,11 @@ class ClusterRunner:
         """
         print(f"Iteration: {self.iteration_counter}")
         self.iteration_counter += 1
+        if self.iteration_counter == 1:
+            return  # we're getting a bogus first iteration before the screen updates, so this skips this one.
 
-        keep_looping = False # unless you change this when your data, attractors or clusters change, this will be the
-                             #    last iteration.
+        keep_looping = False # unless you change this when your data, attractors or clusters change, or if you haven't
+                             # reached the desired K, this will be the last iteration.
 
         # TODO: here is where you will execute a step of your algorithm.
 
@@ -120,7 +118,7 @@ class ClusterRunner:
 
 
 
-        if not keep_looping:
+        if not keep_looping and self.iteration_counter > 0:
             self.pause_animation()
             self.conclude()
 
