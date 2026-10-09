@@ -1,6 +1,8 @@
 import random
 from typing import List, Optional
 
+from matplotlib.animation import FuncAnimation
+
 from Attractor import Attractor
 from Cluster import Cluster
 from ColorMap import ColorMap
@@ -16,14 +18,17 @@ class ClusterRunner:
         self.attractors:Optional[List[Attractor]] = None
         self.clusters:Optional[List[Cluster]] = None
         self.display = Display(self.color_map)
-
+        self.iteration_counter = 0
+        self.animation_function_list: List[FuncAnimation] = [] # this is the pointer to control the animation loop.
 
         self.load_data("mydata.txt")
-        self.display.setData(self.data)
+        self.display.set_data(self.data)
 
         # if you want attractors, activate the following:
-        self.create_starting_attractors(5)
-        self.display.set_attractors(self.attractors)
+        # self.create_starting_attractors(5)
+
+        if self.attractors is not None:
+            self.display.set_attractors(self.attractors)
 
         # if you want to have clusters at the start of the program, activate the following:
         # self.create_starting_clusters()
@@ -72,5 +77,54 @@ class ClusterRunner:
 
         self.clusters = clusters
 
+    def start(self):
+        print("Starting.")
+        # Tell the visualizer what method should be called each time it is about to update the graph.
+        self.display.set_looping_function(self.iterate_loop)
+
+        # Tell the visualizer to begin animating.
+
+        self.display.start_animation(animation_list=self.animation_function_list)
+
+    def pause_animation(self):
+        if len(self.animation_function_list) > 0:
+            self.animation_function_list[0].pause()
+
+    def resume_animation(self):
+        if len(self.animation_function_list) > 0:
+            self.animation_function_list[0].resume()
+
+    def iterate_loop(self):
+        """
+        This method gets called over and over again by the animation loop.
+        """
+        print(f"Iteration: {self.iteration_counter}")
+        self.iteration_counter += 1
+
+        keep_looping = False # unless you change this when your data, attractors or clusters change, this will be the
+                             #    last iteration.
+
+        # TODO: here is where you will execute a step of your algorithm.
+
+
+
+
+
+
+        if not keep_looping:
+            self.pause_animation()
+            self.conclude()
+
+
+    def conclude(self):
+        """
+        The animation is over - things stopped changing OR you've reached the desired K. Do analysis of the results or
+        clean up the image to reflect the results.
+        :return:
+        """
+        print("Program ended.")
+
+
 if __name__== "__main__":
     cr = ClusterRunner()
+    cr.start()
