@@ -59,6 +59,8 @@ class Display:
         self.lock = Lock()
         self.looping_function: Optional[Callable] = None
 
+        self.has_displayed_once = False
+
     def load_background_image(self, background_filename: str):
         self.background = mpimg.imread(background_filename)
         if self.background is None:
@@ -255,7 +257,7 @@ class Display:
         :param frame: Not used.
         :return: the list of collections that should be drawn. These have to be non-empty.
         """
-        if self.looping_function is not None:
+        if self.looping_function is not None and self.has_displayed_once:
             self.looping_function()
         items_to_update = []
         if self.data_circles_collection is not None:
@@ -264,6 +266,7 @@ class Display:
             items_to_update.append(self.window_collection)
         if self.attractor_star_collection is not None:
             items_to_update.append(self.attractor_star_collection)
+        self.has_displayed_once = True
         return items_to_update
 
     def start_animation(self, animation_list: Optional[List[FuncAnimation]] = None):
@@ -271,12 +274,15 @@ class Display:
         begins the animation process
         :return: the pointer to the functionAnimation, but by the time we exit, the animation window has closed.
         """
-        ani = animation.FuncAnimation(self.fig, func=self.update_plot, interval=500, blit=True, cache_frame_data=False)
-        if animation_list is not None:
-            animation_list.append(ani)
+        if animation_list is None:
+            return
+        animation_list.append(animation.FuncAnimation(self.fig,
+                                                      func=self.update_plot,
+                                                      interval=2000,
+                                                      blit=True,
+                                                      cache_frame_data=False))
 
         # Note: once we call the plt.show(), this thread will freeze here until the window is dismissed. All other
         #       actions will take place in the animation thread we just started.
         plt.show()
-
-        ani.pause()
+        animation_list[-1].pause()
