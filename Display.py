@@ -160,28 +160,57 @@ class Display:
 
             self.ax.add_collection(self.data_circles_collection)
 
-    def append_data(self, datum:Datum):
-        with self.lock:
-            if self.data is None:
-                self.set_data([datum])
-            else:
-                with self.lock:
-                    self.data.append(datum)
-                    # update this class's lists of size, position, color
-                    self.data_size_list.append((math.pi*DATA_POINT_RADIUS**2))
-                    self.data_positions.append(datum.location)
-                    self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.attractor_num))
-                    # tell matplotlib about these changed lists.
-                    self.data_circles_collection.set_offsets(np.array(self.data_positions))
-                    self.data_circles_collection.set_sizes(self.data_size_list)
-                    self.data_circles_collection.set_color(self.data_color_list)
+    def append_attractor(self, attractor:Attractor):
+        if self.attractors is None:
+            self.set_attractors([attractor])
+        else:
+            with self.lock:
+                self.attractors.append(attractor)
+                # update this class's lists of size, position, color
+                if self.show_windows:
+                    self.window_color_list.append(WINDOW_COLOR)
+                    self.window_diameter_list.append(2 * WINDOW_RADIUS)
+                    self.window_angle_list.append(0)
+                self.attractor_star_color_list.append(self.color_map.get_color_for_id(attractor.id))
+                self.attractor_star_positions.append(attractor.location)
+                self.attractor_star_size_list.append(2 * STAR_RADIUS ** 2)
+                # tell matplotlib about these changed lists.
+                if self.show_windows:
+                    self.window_collection.set_color(self.window_color_list)
+                    self.window_collection.set_widths(self.window_diameter_list)
+                    self.window_collection.set_heights(self.window_diameter_list)
+                    self.window_collection.set_angles(self.window_angle_list)
+                    self.window_collection.set_offsets(self.window_positions)
+                self.attractor_star_collection.set_color(self.attractor_star_color_list)
+                self.attractor_star_collection.set_sizes(self.attractor_star_size_list)
+                self.attractor_star_collection.set_offsets(self.attractor_star_positions)
 
-    def point_at_index_has_changed_color(self, idx: int):
+    def attractor_at_index_has_changed_position(self, idx: int):
+        with self.lock:
+            self.attractor_star_positions[idx] = self.attractors[idx].location
+            if self.show_windows:
+                self.window_collection.set_offsets(self.window_positions)
+            self.attractor_star_collection.set_offsets(self.attractor_star_positions)
+
+    def append_data(self, datum:Datum):
+        if self.data is None:
+            self.set_data([datum])
+        else:
+            with self.lock:
+                self.data.append(datum)
+                # update this class's lists of size, position, color
+                self.data_size_list.append((math.pi*DATA_POINT_RADIUS**2))
+                self.data_positions.append(datum.location)
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.attractor_num))
+                # tell matplotlib about these changed lists.
+                self.data_circles_collection.set_offsets(np.array(self.data_positions))
+                self.data_circles_collection.set_sizes(self.data_size_list)
+                self.data_circles_collection.set_color(self.data_color_list)
+
+    def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
             self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].attractor_num)
             self.data_circles_collection.set_color(self.data_color_list)
-
-
 
     def set_looping_function(self, func:Optional[Callable]):
         """
