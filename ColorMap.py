@@ -37,3 +37,8 @@ class ColorMap:
                                            random.random()*0.75, 1.0))
         return len(self.__used_colors)-1
 
+    def __repr__(self) -> str:
+        result = f"{self.__default_colors_used=}\t{len(self.__used_colors)=}"
+        for i in range(len(self.__used_colors)):
+            result = result +(f"\n{self.__used_colors[i]}")
+        return result
