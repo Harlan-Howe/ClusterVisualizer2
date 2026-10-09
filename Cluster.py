@@ -1,3 +1,4 @@
+import copy
 from typing import List
 from Datum import Datum
 
@@ -9,18 +10,41 @@ class Cluster:
         if datum is not None and data_list is not None:
             raise Exception("Cluster should be created with either a point or a point list.")
         if datum is not None:
-            self.data_list: List[Datum] = [datum]
-            self.mean_location = datum.location
-            self.attractor_id = attractor_id
+            self.__data_list: List[Datum] = [datum]
+            self.__mean_location = datum.location
+            self.__attractor_id = attractor_id
         else:
             x_sum = 0
             y_sum = 0
-            self.data_list: List[Datum] = []
+            self.__data_list: List[Datum] = []
             for d in data_list:
                 x_sum += d.location[0]
                 y_sum += d.location[1]
-                self.data_list.append(d)
-            self.mean_location = (x_sum/len(data_list),y_sum/len(data_list))
-            self.attractor_id = attractor_id
+                self.__data_list.append(d)
+            self.__mean_location = (x_sum / len(data_list), y_sum / len(data_list))
+            self.__attractor_id = attractor_id
+
+    @property
+    def data_list(self):
+        return copy.deepcopy(self.__data_list)
+
+    @property
+    def mean_location(self):
+        return self.__mean_location
+
+    @property
+    def attractor_id(self):
+        return self.__attractor_id
+
+    def add_datum(self, datum:Datum):
+        old_N = len(self.__data_list)
+        self.__mean_location = ((old_N*self.__mean_location[0])/(old_N+1),
+                                (old_N*self.__mean_location[1])/(old_N+1))
+        self.__data_list.append(datum)
+        datum.attractor_num = self.__attractor_id
+
+    def absorb_cluster(self, other:Cluster):
+        for d in other.data_list:
+            self.add_datum(d)
 
 
