@@ -1,19 +1,26 @@
 import copy
-from typing import List
+from typing import List, Optional
 from Datum import Datum
 
 
 class Cluster:
-    def __init__(self, attractor_id:int, datum:Datum = None, data_list: List[Datum] = None):
-        if datum is None and (data_list is None or len(data_list) == 0):
-            raise Exception("Cluster needs to start with at least one Datum.")
+    def __init__(self, color_id:int, datum:Optional[Datum] = None, data_list: Optional[List[Datum]] = None):
+        """
+        this initializer will create a Cluster with EITHER a single datum or a list of data and assign them all the
+        same color_id.
+        Note: You must have either a datum XOR a data_list.
+        :param color_id: the number of a color in the ColorMap.
+        :param datum: a single datum or NONE.
+        :param data_list: a list of data   or  NONE
+        """
+
         if datum is not None and data_list is not None:
-            raise Exception("Cluster should be created with either a point or a point list.")
-        if datum is not None:
+            raise Exception("Cluster should be created with EITHER a point or a point list.")
+        elif datum is not None:
             self.__data_list: List[Datum] = [datum]
             self.__mean_location = datum.location
-            self.__attractor_id = attractor_id
-        else:
+            self.__color_id = color_id
+        elif data_list is not None and len(data_list)>0:
             x_sum = 0
             y_sum = 0
             self.__data_list: List[Datum] = []
@@ -22,7 +29,9 @@ class Cluster:
                 y_sum += d.location[1]
                 self.__data_list.append(d)
             self.__mean_location = (x_sum / len(data_list), y_sum / len(data_list))
-            self.__attractor_id = attractor_id
+            self.__color_id = color_id
+        else:
+            raise Exception("Cluster needs to start with at least one Datum.")
 
     @property
     def data_list(self):
@@ -33,8 +42,8 @@ class Cluster:
         return self.__mean_location
 
     @property
-    def attractor_id(self):
-        return self.__attractor_id
+    def color_id(self):
+        return self.__color_id
 
     def __len__(self) -> int:
         return len(self.__data_list)
@@ -44,7 +53,7 @@ class Cluster:
         self.__mean_location = ((old_N*self.__mean_location[0] + datum.location[0])/(old_N+1),
                                 (old_N*self.__mean_location[1] + datum.location[1])/(old_N+1))
         self.__data_list.append(datum)
-        datum.color_index = self.__attractor_id
+        datum.color_index = self.__color_id
 
     def absorb_cluster(self, other:Cluster):
         for d in other.data_list:
@@ -65,4 +74,4 @@ class Cluster:
         self.remove_datum(instance)
 
     def __repr__(self) -> str:
-        return f"Cluster {self.__attractor_id} @ {self.__mean_location} contains {self.__data_list}"
+        return f"Cluster {self.__color_id} @ {self.__mean_location} contains {self.__data_list}"
