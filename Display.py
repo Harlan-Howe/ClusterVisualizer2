@@ -110,7 +110,7 @@ class Display:
             self.attractor_star_color_list.clear()
             self.attractor_star_positions.clear()
             for a in attractors:
-                self.attractor_star_color_list.append(self.color_map.get_color_for_id(a.id))
+                self.attractor_star_color_list.append(self.color_map.get_color_for_id(a.color_id))
                 self.attractor_star_positions.append(a.location)
             self.attractor_star_size_list = [(2*STAR_RADIUS**2) for _ in range(len(attractors))]
 
@@ -163,7 +163,7 @@ class Display:
                     self.window_color_list.append(WINDOW_COLOR)
                     self.window_diameter_list.append(2 * WINDOW_RADIUS)
                     self.window_angle_list.append(0)
-                self.attractor_star_color_list.append(self.color_map.get_color_for_id(attractor.id))
+                self.attractor_star_color_list.append(self.color_map.get_color_for_id(attractor.color_id))
                 self.attractor_star_positions.append(attractor.location)
                 self.attractor_star_size_list.append(2 * STAR_RADIUS ** 2)
                 # tell matplotlib about these changed lists.
