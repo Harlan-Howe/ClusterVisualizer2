@@ -221,8 +221,7 @@ class Display:
             self.data_circles_collection.set_sizes(self.data_size_list)
             self.data_circles_collection.set_color(self.data_color_list)
         else:
-            raise Exception("Trying to update the data collections, but we didn't create the collection first."
-                            "")
+            raise Exception("Trying to update the data collections, but we didn't create the collection first.")
     def append_data(self, datum:Datum):
         if self.data is None:
             self.set_data([datum])
@@ -238,14 +237,15 @@ class Display:
 
     def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
-            self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
-            self.data_circles_collection.set_color(self.data_color_list)
+            if self.data is not None and 0 <= idx < len(self.data):
+                self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
+                if self.data_circles_collection is not None:
+                    self.data_circles_collection.set_color(self.data_color_list)
 
     def set_looping_function(self, func:Optional[Callable]):
         """
         Sets which method, if any, should be called whenever the graph is about to update.
         :param func: the method to call, or None
-        :return: None
         """
         self.looping_function = func
 
@@ -271,7 +271,6 @@ class Display:
         begins the animation process
         :return: the pointer to the functionAnimation, but by the time we exit, the animation window has closed.
         """
-        self.count = 0
         ani = animation.FuncAnimation(self.fig, func=self.update_plot, interval=500, blit=True, cache_frame_data=False)
         if animation_list is not None:
             animation_list.append(ani)
