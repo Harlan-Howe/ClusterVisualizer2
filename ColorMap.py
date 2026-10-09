@@ -19,7 +19,7 @@ class ColorMap:
             return self.__used_colors[color_id]
         raise IndexError(f"Id {color_id} is out of bounds for colormap with length {len(self.__used_colors)}.")
 
-    def add_color(self, color:Optional[Tuple[float, float, float, float]]) -> int:
+    def add_color(self, color:Optional[Tuple[float, float, float, float]] = None) -> int:
         """
         adds a new color to the list and returns the id of that color.
         :param color: the color to add. If this is None, picks a new color, first from the list of default values, but
