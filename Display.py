@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple, Callable
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib.animation import FuncAnimation
 import matplotlib.image as mpimg
 import matplotlib.collections as collections
 import numpy as np
@@ -33,13 +34,13 @@ class Display:
             self.load_background_image(background_filename)
 
         self.data: Optional[List[Datum]] = None
-        self.attractors: List[Attractor] = None
+        self.attractors: Optional[List[Attractor]] = None
 
         # start off with containers for all parts of the graphics for the data.
         self.data_positions: List[Tuple[float, float]] = []
         self.data_size_list: List[float] = []
         self.data_color_list: List[Tuple[float, float, float, float]] = []
-        self.data_circles_collection: collections.CircleCollection = None
+        self.data_circles_collection: Optional[collections.CircleCollection] = None
 
         # start off with containers for all parts of the graphics for attractors' windows.
         self.window_positions: List[Tuple[float, float]] = []
@@ -68,7 +69,8 @@ class Display:
 
         self.set_bounds(max_x=width, max_y=height, invert_y=True)
 
-    def set_axis_labels(self, x_label:str, y_label:str):
+    @staticmethod
+    def set_axis_labels(x_label:str, y_label:str):
         plt.xlabel(x_label)
         plt.ylabel(y_label)
 
@@ -120,7 +122,8 @@ class Display:
                                                                        offsets=np.array([]).reshape(-1, 2),
                                                                        units="xy",
                                                                        offset_transform=self.ax.transData)
-                self.ax.add_collection(self.window_collection)
+                if self.window_collection is not None:
+                    self.ax.add_collection(self.window_collection)
 
             # build a collection of stars in matplotlib.
             if self.attractor_star_collection is None:
@@ -129,34 +132,25 @@ class Display:
                                                                                    sizes=np.array([]),
                                                                                    offsets=np.array([]).reshape(-1, 2),
                                                                                    offset_transform=self.ax.transData)
-                self.ax.add_collection(self.attractor_star_collection)
+                if self.attractor_star_collection is not None:
+                    self.ax.add_collection(self.attractor_star_collection)
 
         # now send the specific information to matplotlib about these shapes.
         self.update_attractor_collections_in_matplotlib()
 
 
-    def set_data(self, data: List[Datum]):
-        if data is None or len(data) == 0:
-            raise Exception("Attempting to set up data in Display, but there must be at least one datum.")
-
+    def update_attractor_collections_in_matplotlib(self):
         with self.lock:
-            self.data = data
-            # update this class's lists of size, position, color
-            self.data_size_list = [(math.pi * DATA_POINT_RADIUS ** 2) for _ in range(len(data))]
-            self.data_positions.clear()
-            self.data_color_list.clear()
-            for d in data:
-                self.data_positions.append(d.location)
-                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.color_index))
-
-            # tell matplotlib about these changed lists.
-            self.data_circles_collection = collections.CircleCollection(sizes=self.data_size_list,
-                                                                        offsets=[],
-                                                                        offset_transform=self.ax.transData)
-            self.data_circles_collection.set_offsets(np.array(self.data_positions))
-            self.data_circles_collection.set_color(np.array(self.data_color_list))
-
-            self.ax.add_collection(self.data_circles_collection)
+            if self.show_windows and self.window_collection is not None:
+                self.window_collection.set_color(self.window_color_list)
+                self.window_collection.set_widths(self.window_diameter_list)
+                self.window_collection.set_heights(self.window_diameter_list)
+                self.window_collection.set_angles(self.window_angle_list)
+                self.window_collection.set_offsets(self.window_positions)
+            if self.attractor_star_collection is not None:
+                self.attractor_star_collection.set_color(self.attractor_star_color_list)
+                self.attractor_star_collection.set_sizes(self.attractor_star_size_list)
+                self.attractor_star_collection.set_offsets(self.attractor_star_positions)
 
     def append_attractor(self, attractor:Attractor):
         if self.attractors is None:
@@ -175,22 +169,12 @@ class Display:
                 # tell matplotlib about these changed lists.
             self.update_attractor_collections_in_matplotlib()
 
-    def update_attractor_collections_in_matplotlib(self):
-        with self.lock:
-            if self.show_windows and self.window_collection is not None:
-                self.window_collection.set_color(self.window_color_list)
-                self.window_collection.set_widths(self.window_diameter_list)
-                self.window_collection.set_heights(self.window_diameter_list)
-                self.window_collection.set_angles(self.window_angle_list)
-                self.window_collection.set_offsets(self.window_positions)
-            if self.attractor_star_collection is not None:
-                self.attractor_star_collection.set_color(self.attractor_star_color_list)
-                self.attractor_star_collection.set_sizes(self.attractor_star_size_list)
-                self.attractor_star_collection.set_offsets(self.attractor_star_positions)
-
     def attractor_at_index_has_changed_position(self, idx: int):
         with self.lock:
-            self.attractor_star_positions[idx] = self.attractors[idx].location
+            if self.attractors is not None and 0<= idx < len(self.attractors):
+                self.attractor_star_positions[idx] = self.attractors[idx].location
+            else:
+                raise Exception("attempting to update an attractors, but the list is None or we are out of bounds.")
         self.update_attractor_collections_in_matplotlib()
 
     def removed_attractor_at_index(self, idx: int):
@@ -199,7 +183,7 @@ class Display:
                 raise Exception("You should not remove the last attractor!")
             if self.show_windows:
                 self.window_color_list.pop(-1) # we can just remove the last item if they're all the same.
-                self.window.diameter_list.pop(-1)
+                self.window_diameter_list.pop(-1)
                 del(self.window_positions[idx]) # this one varies by attractor, so we need to remove the right one.
                 self.window_angle_list.pop(-1)
             del(self.attractor_star_color_list[idx])
@@ -207,6 +191,38 @@ class Display:
             del(self.attractor_star_positions[idx])
         self.update_attractor_collections_in_matplotlib()
 
+    def set_data(self, data: List[Datum]):
+        if data is None or len(data) == 0:
+            raise Exception("Attempting to set up data in Display, but there must be at least one datum.")
+
+        with self.lock:
+            self.data = data
+            # update this class's lists of size, position, color
+            self.data_size_list = [(math.pi * DATA_POINT_RADIUS ** 2) for _ in range(len(data))]
+            self.data_positions.clear()
+            self.data_color_list.clear()
+            for d in data:
+                self.data_positions.append(d.location)
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.color_index))
+
+            # tell matplotlib about these changed lists.
+            if self.data_circles_collection is None:
+                self.data_circles_collection = collections.CircleCollection(sizes=self.data_size_list,
+                                                                        offsets=[],
+                                                                        offset_transform=self.ax.transData)
+            if self.data_circles_collection is not None:
+                self.ax.add_collection(self.data_circles_collection)
+                self.data_circles_collection.set_offsets(np.array(self.data_positions))
+                self.data_circles_collection.set_color(np.array(self.data_color_list))
+
+    def update_data_collection_in_matplotlib(self):
+        if self.data_circles_collection is not None:
+            self.data_circles_collection.set_offsets(np.array(self.data_positions))
+            self.data_circles_collection.set_sizes(self.data_size_list)
+            self.data_circles_collection.set_color(self.data_color_list)
+        else:
+            raise Exception("Trying to update the data collections, but we didn't create the collection first."
+                            "")
     def append_data(self, datum:Datum):
         if self.data is None:
             self.set_data([datum])
@@ -218,9 +234,7 @@ class Display:
                 self.data_positions.append(datum.location)
                 self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.color_index))
                 # tell matplotlib about these changed lists.
-                self.data_circles_collection.set_offsets(np.array(self.data_positions))
-                self.data_circles_collection.set_sizes(self.data_size_list)
-                self.data_circles_collection.set_color(self.data_color_list)
+                self.update_data_collection_in_matplotlib()
 
     def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
@@ -234,3 +248,36 @@ class Display:
         :return: None
         """
         self.looping_function = func
+
+    def update_plot(self, frame):
+        """
+        This method is called automatically to animate the graph, and it calls a method set by set_looping_function.
+        :param frame: Not used.
+        :return: the list of collections that should be drawn. These have to be non-empty.
+        """
+        if self.looping_function is not None:
+            self.looping_function()
+        items_to_update = []
+        if self.data_circles_collection is not None:
+            items_to_update.append(self.data_circles_collection)
+        if self.show_windows and self.window_collection is not None:
+            items_to_update.append(self.window_collection)
+        if self.attractor_star_collection is not None:
+            items_to_update.append(self.attractor_star_collection)
+        return items_to_update
+
+    def start_animation(self, animation_list: Optional[List[FuncAnimation]] = None):
+        """
+        begins the animation process
+        :return: the pointer to the functionAnimation, but by the time we exit, the animation window has closed.
+        """
+        self.count = 0
+        ani = animation.FuncAnimation(self.fig, func=self.update_plot, interval=500, blit=True, cache_frame_data=False)
+        if animation_list is not None:
+            animation_list.append(ani)
+
+        # Note: once we call the plt.show(), this thread will freeze here until the window is dismissed. All other
+        #       actions will take place in the animation thread we just started.
+        plt.show()
+
+        ani.pause()
