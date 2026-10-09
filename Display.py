@@ -20,7 +20,7 @@ STAR_RADIUS = 6
 WINDOW_COLOR = (1.0, 1.0, 0.0, 0.33)
 
 class Display:
-    def __init__(self, background_filename: Optional[str], color_map: Optional[ColorMap], show_windows:bool =False):
+    def __init__(self, color_map: Optional[ColorMap], background_filename: Optional[str] = None, show_windows:bool =False):
         if color_map is None:
             color_map = ColorMap()
         self.color_map = color_map
