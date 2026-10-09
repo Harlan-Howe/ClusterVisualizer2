@@ -149,7 +149,7 @@ class Display:
             self.data_color_list.clear()
             for d in data:
                 self.data_positions.append(d.location)
-                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.attractor_num))
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.color_index))
 
             # tell matplotlib about these changed lists.
             self.data_circles_collection = collections.CircleCollection(sizes=self.data_size_list,
@@ -192,6 +192,8 @@ class Display:
                 self.window_collection.set_offsets(self.window_positions)
             self.attractor_star_collection.set_offsets(self.attractor_star_positions)
 
+
+
     def append_data(self, datum:Datum):
         if self.data is None:
             self.set_data([datum])
@@ -201,7 +203,7 @@ class Display:
                 # update this class's lists of size, position, color
                 self.data_size_list.append((math.pi*DATA_POINT_RADIUS**2))
                 self.data_positions.append(datum.location)
-                self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.attractor_num))
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.color_index))
                 # tell matplotlib about these changed lists.
                 self.data_circles_collection.set_offsets(np.array(self.data_positions))
                 self.data_circles_collection.set_sizes(self.data_size_list)
@@ -209,7 +211,7 @@ class Display:
 
     def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
-            self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].attractor_num)
+            self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
             self.data_circles_collection.set_color(self.data_color_list)
 
     def set_looping_function(self, func:Optional[Callable]):

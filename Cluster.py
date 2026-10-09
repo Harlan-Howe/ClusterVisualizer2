@@ -44,7 +44,7 @@ class Cluster:
         self.__mean_location = ((old_N*self.__mean_location[0] + datum.location[0])/(old_N+1),
                                 (old_N*self.__mean_location[1] + datum.location[1])/(old_N+1))
         self.__data_list.append(datum)
-        datum.attractor_num = self.__attractor_id
+        datum.color_index = self.__attractor_id
 
     def absorb_cluster(self, other:Cluster):
         for d in other.data_list:
