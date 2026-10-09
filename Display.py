@@ -17,7 +17,7 @@ from Datum import Datum
 WINDOW_RADIUS = 100
 DATA_POINT_RADIUS = 0.5
 STAR_RADIUS = 6
-WINDOW_COLOR = (1.0, 1.0, 0.0, 0.33)
+WINDOW_COLOR = (1.0, 1.0, 0.0, 0.15)
 
 class Display:
     def __init__(self, color_map: Optional[ColorMap], background_filename: Optional[str] = None, show_windows:bool =False):
