@@ -60,6 +60,8 @@ class Display:
         self.looping_function: Optional[Callable] = None
 
         self.has_displayed_once = False
+        self.data_needs_update = False
+        self.attractors_need_update = False
 
     def load_background_image(self, background_filename: str):
         self.background = mpimg.imread(background_filename)
@@ -140,7 +142,6 @@ class Display:
         # now send the specific information to matplotlib about these shapes.
         self.update_attractor_collections_in_matplotlib()
 
-
     def update_attractor_collections_in_matplotlib(self):
         with self.lock:
             if self.show_windows and self.window_collection is not None:
@@ -169,7 +170,7 @@ class Display:
                 self.attractor_star_positions.append(attractor.location)
                 self.attractor_star_size_list.append(2 * STAR_RADIUS ** 2)
                 # tell matplotlib about these changed lists.
-            self.update_attractor_collections_in_matplotlib()
+            self.attractors_need_update = True
 
     def attractor_at_index_has_changed_position(self, idx: int):
         with self.lock:
@@ -177,7 +178,7 @@ class Display:
                 self.attractor_star_positions[idx] = self.attractors[idx].location
             else:
                 raise Exception("attempting to update an attractors, but the list is None or we are out of bounds.")
-        self.update_attractor_collections_in_matplotlib()
+        self.attractors_need_update = True
 
     def removed_attractor_at_index(self, idx: int):
         with self.lock:
@@ -191,7 +192,7 @@ class Display:
             del(self.attractor_star_color_list[idx])
             self.attractor_star_size_list.pop(-1)
             del(self.attractor_star_positions[idx])
-        self.update_attractor_collections_in_matplotlib()
+        self.attractors_need_update = True
 
     def set_data(self, data: List[Datum]):
         if data is None or len(data) == 0:
@@ -235,14 +236,14 @@ class Display:
                 self.data_positions.append(datum.location)
                 self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.color_index))
                 # tell matplotlib about these changed lists.
-                self.update_data_collection_in_matplotlib()
+                self.data_needs_update = True
 
     def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
             if self.data is not None and 0 <= idx < len(self.data):
                 self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
                 if self.data_circles_collection is not None:
-                    self.data_circles_collection.set_color(self.data_color_list)
+                    self.data_needs_update = True
 
     def set_looping_function(self, func:Optional[Callable]):
         """
@@ -259,6 +260,15 @@ class Display:
         """
         if self.looping_function is not None and self.has_displayed_once:
             self.looping_function()
+
+        if self.data_needs_update:
+            self.update_data_collection_in_matplotlib()
+            self.data_needs_update = False
+
+        if self.attractors_need_update:
+            self.update_attractor_collections_in_matplotlib()
+            self.attractors_need_update = False
+
         items_to_update = []
         if self.data_circles_collection is not None:
             items_to_update.append(self.data_circles_collection)
