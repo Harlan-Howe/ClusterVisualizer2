@@ -242,10 +242,16 @@ class Display:
         with self.lock:
             if self.data is not None and 0 <= idx < len(self.data):
                 self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
-                if self.data_circles_collection is not None:
-                    self.data_needs_update = True
+                self.data_needs_update = True
 
-    def set_looping_function(self, func:Optional[Callable]):
+    def refresh_all_data_colors(self):
+        with self.lock:
+            if self.data is not None:
+                for i in range(len(self.data)):
+                    self.data_color_list[i] = self.color_map.get_color_for_id(color_id=self.data[i].color_index)
+                self.data_needs_update = True
+
+def set_looping_function(self, func:Optional[Callable]):
         """
         Sets which method, if any, should be called whenever the graph is about to update.
         :param func: the method to call, or None
