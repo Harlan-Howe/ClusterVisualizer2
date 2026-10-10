@@ -60,7 +60,6 @@ class Cluster:
     def absorb_cluster(self, other:Cluster):
         for d in other.data_list:
             self.add_datum(d)
-            d.color_index = self.__color_id
 
     def remove_datum(self, datum:Datum):
         if len(self.__data_list) == 1:
