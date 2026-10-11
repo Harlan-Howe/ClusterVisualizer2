@@ -21,6 +21,8 @@ class ClusterRunner:
         self.iteration_counter = 0
         self.animation_function_list: List[FuncAnimation] = [] # this is the pointer to control the animation loop.
 
+        self.datum_id_counter = 0
+
         self.load_data("coordinates.txt")
         self.display.set_data(self.data)
         print(f"{self.data_bounds=}")
@@ -47,7 +49,8 @@ class ClusterRunner:
         with open(filename, "r") as inputFile:
             for line in inputFile:
                 parts = line.split("\t")
-                d = Datum(location=(float(parts[0]),float(parts[1])),color_index=0)
+                d = Datum(location=(float(parts[0]),float(parts[1])),color_index=0, id=self.datum_id_counter)
+                self.datum_id_counter += 1
                 self.data.append(d)
                 self.data_bounds["x_min"] = min(self.data_bounds["x_min"], float(parts[0]))
                 self.data_bounds["x_max"] = max(self.data_bounds["x_max"], float(parts[0]))
