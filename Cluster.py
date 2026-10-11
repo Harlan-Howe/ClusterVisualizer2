@@ -37,7 +37,7 @@ class Cluster:
 
     @property
     def data_list(self):
-        return copy.deepcopy(self.__data_list)
+        return self.__data_list
 
     @property
     def mean_location(self):
