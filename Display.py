@@ -251,7 +251,7 @@ class Display:
                     self.data_color_list[i] = self.color_map.get_color_for_id(color_id=self.data[i].color_index)
                 self.data_needs_update = True
 
-def set_looping_function(self, func:Optional[Callable]):
+    def set_looping_function(self, func:Optional[Callable]):
         """
         Sets which method, if any, should be called whenever the graph is about to update.
         :param func: the method to call, or None
