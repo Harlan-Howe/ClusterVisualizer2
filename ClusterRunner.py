@@ -8,6 +8,7 @@ from Cluster import Cluster
 from ColorMap import ColorMap
 from Datum import Datum
 from Display import Display
+from Display import WINDOW_RADIUS
 
 
 class ClusterRunner:
