@@ -20,7 +20,7 @@ class Cluster:
             self.__data_list: List[Datum] = [datum]
             self.__mean_location = datum.location
             self.__color_id = color_id
-            datum.color_index = color_id
+            datum.color_id = color_id
         elif data_list is not None and len(data_list)>0:
             x_sum = 0
             y_sum = 0
@@ -28,7 +28,7 @@ class Cluster:
             for d in data_list:
                 x_sum += d.location[0]
                 y_sum += d.location[1]
-                d.color_index = color_id
+                d.color_id = color_id
                 self.__data_list.append(d)
             self.__mean_location = (x_sum / len(data_list), y_sum / len(data_list))
             self.__color_id = color_id
@@ -55,7 +55,7 @@ class Cluster:
         self.__mean_location = ((old_N*self.__mean_location[0] + datum.location[0])/(old_N+1),
                                 (old_N*self.__mean_location[1] + datum.location[1])/(old_N+1))
         self.__data_list.append(datum)
-        datum.color_index = self.__color_id
+        datum.color_id = self.__color_id
 
     def absorb_cluster(self, other:Cluster):
         for d in other.__data_list:

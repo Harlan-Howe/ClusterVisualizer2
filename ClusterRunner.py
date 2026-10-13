@@ -50,7 +50,7 @@ class ClusterRunner:
         with open(filename, "r") as inputFile:
             for line in inputFile:
                 parts = line.split("\t")
-                d = Datum(location=(float(parts[0]),float(parts[1])),color_index=0, id=self.datum_id_counter)
+                d = Datum(location=(float(parts[0]),float(parts[1])), color_id=0, id=self.datum_id_counter)
                 self.datum_id_counter += 1
                 self.data.append(d)
                 self.data_bounds["x_min"] = min(self.data_bounds["x_min"], float(parts[0]))

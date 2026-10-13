@@ -4,7 +4,7 @@ from typing import Tuple
 @dataclass
 class Datum:
     location: Tuple[float,float]
-    color_index: int
+    color_id: int
     id: int # a value to distinguish between two points at the same location.
 
     def __hash__(self) -> int:
