@@ -52,24 +52,20 @@ class Cluster:
 
     def add_datum(self, datum:Datum):
         old_N = len(self.__data_list)
-        self.__mean_location = ((old_N*self.__mean_location[0] + datum.location[0])/(old_N+1),
-                                (old_N*self.__mean_location[1] + datum.location[1])/(old_N+1))
-        self.__data_list.append(datum)
+        # TODO: if you are using the mean location of this cluster, you'll need to update it here.
         datum.color_id = self.__color_id
 
     def absorb_cluster(self, other:Cluster):
         for d in other.__data_list:
             self.add_datum(d)
 
-
     def remove_datum(self, datum:Datum):
         if len(self.__data_list) == 1:
             raise Exception("Cannot create an empty cluster. Delete this cluster, instead.")
         if datum in self.__data_list:
             old_N = len(self.__data_list)
-            self.__mean_location= ((old_N * self.__mean_location[0] - datum.location[0])/(old_N-1),
-                                   (old_N * self.__mean_location[1] - datum.location[1])/(old_N-1))
-            self.__data_list.remove(datum)
+            # TODO: if you are using the mean location of this cluster and might remove data from a cluster, you'll need
+            #       to update the mean location here.
         else:
             raise Exception(f"Asked to remove {datum} from cluster, but it is not contained in the cluster.")
 
