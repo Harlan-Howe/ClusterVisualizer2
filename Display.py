@@ -14,6 +14,7 @@ from threading import Lock
 
 from Datum import Datum
 
+TIME_PER_ITERATION_IN_MS = 2000
 WINDOW_RADIUS = 100
 DATA_POINT_RADIUS = 0.5
 STAR_RADIUS = 6
@@ -180,6 +181,13 @@ class Display:
                 raise Exception("attempting to update an attractors, but the list is None or we are out of bounds.")
         self.attractors_need_update = True
 
+    def refresh_all_attractor_locations(self):
+        with self.lock:
+            if self.attractors is not None:
+                for i in range(len(self.attractors)):
+                    self.attractor_star_positions[i] = self.attractors[i].location
+                self.attractors_need_update = True
+
     def removed_attractor_at_index(self, idx: int):
         with self.lock:
             if len(self.attractor_star_positions) == 1:
@@ -206,7 +214,7 @@ class Display:
             self.data_color_list.clear()
             for d in data:
                 self.data_positions.append(d.location)
-                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.color_index))
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=d.color_id))
 
             # tell matplotlib about these changed lists.
             if self.data_circles_collection is None:
@@ -234,21 +242,21 @@ class Display:
                 # update this class's lists of size, position, color
                 self.data_size_list.append((math.pi*DATA_POINT_RADIUS**2))
                 self.data_positions.append(datum.location)
-                self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.color_index))
+                self.data_color_list.append(self.color_map.get_color_for_id(color_id=datum.color_id))
                 # tell matplotlib about these changed lists.
                 self.data_needs_update = True
 
     def datum_at_index_has_changed_color(self, idx: int):
         with self.lock:
             if self.data is not None and 0 <= idx < len(self.data):
-                self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_index)
+                self.data_color_list[idx] = self.color_map.get_color_for_id(color_id=self.data[idx].color_id)
                 self.data_needs_update = True
 
     def refresh_all_data_colors(self):
         with self.lock:
             if self.data is not None:
                 for i in range(len(self.data)):
-                    self.data_color_list[i] = self.color_map.get_color_for_id(color_id=self.data[i].color_index)
+                    self.data_color_list[i] = self.color_map.get_color_for_id(color_id=self.data[i].color_id)
                 self.data_needs_update = True
 
     def set_looping_function(self, func:Optional[Callable]):
@@ -294,7 +302,7 @@ class Display:
             return
         animation_list.append(animation.FuncAnimation(self.fig,
                                                       func=self.update_plot,
-                                                      interval=2000,
+                                                      interval=TIME_PER_ITERATION_IN_MS,
                                                       blit=True,
                                                       cache_frame_data=False))
 
