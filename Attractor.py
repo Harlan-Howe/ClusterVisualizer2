@@ -5,4 +5,3 @@ from typing import Tuple
 class Attractor:
     color_id: int
     location: Tuple[float, float]
-    is_active: bool = True
