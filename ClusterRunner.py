@@ -34,9 +34,8 @@ class ClusterRunner:
                                 invert_y=True)
 
         # if you want attractors, activate the following:
-        self.create_starting_attractors(5)
-        print(self.attractors)
-        print(self.color_map)
+        # self.create_starting_attractors(5)
+
 
         if self.attractors is not None:
             self.display.set_attractors(self.attractors)
