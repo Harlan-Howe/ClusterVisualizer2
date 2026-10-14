@@ -24,7 +24,7 @@ class ClusterRunner:
 
         self.datum_id_counter = 0
 
-        self.load_data("coordinates.txt")
+        self.load_data("800 points Quadrangle.tsv")
         self.display.set_data(self.data)
         print(f"{self.data_bounds=}")
         self.display.set_bounds(min_x= self.data_bounds["x_min"],
