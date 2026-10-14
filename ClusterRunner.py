@@ -111,8 +111,10 @@ class ClusterRunner:
         if self.iteration_counter == 1:
             return  # we're getting a bogus first iteration before the screen updates, so this skips this one.
 
-        keep_looping = False # unless you change this when your data, attractors or clusters change, or if you haven't
-                             # reached the desired K, this will be the last iteration.
+        keep_looping = False  # unless you change this when your data, attractors or clusters change, or if you haven't
+                                #   reached the desired K, this will be the last iteration.
+                              # Alternatively, you might want to start this as True and plan to keep looping until
+                                #   something changes this.
 
         # TODO: here is where you will execute a step of your algorithm.
 
