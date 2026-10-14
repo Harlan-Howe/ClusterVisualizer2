@@ -52,7 +52,9 @@ class Cluster:
 
     def add_datum(self, datum:Datum):
         old_N = len(self.__data_list)
+
         # TODO: if you are using the mean location of this cluster, you'll need to update it here.
+        self.__data_list.append(datum)
         datum.color_id = self.__color_id
 
     def absorb_cluster(self, other:Cluster):
@@ -66,6 +68,7 @@ class Cluster:
             old_N = len(self.__data_list)
             # TODO: if you are using the mean location of this cluster and might remove data from a cluster, you'll need
             #       to update the mean location here.
+            self.__data_list.remove(datum)
         else:
             raise Exception(f"Asked to remove {datum} from cluster, but it is not contained in the cluster.")
 
