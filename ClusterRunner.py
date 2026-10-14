@@ -46,7 +46,7 @@ class ClusterRunner:
 
 
     def load_data(self, filename:str):
-        with open(filename, "r") as inputFile:
+        with open(f"data/{filename}", "r") as inputFile:
             for line in inputFile:
                 parts = line.split("\t")
                 d = Datum(location=(float(parts[0]),float(parts[1])), color_id=0, id=self.datum_id_counter)
