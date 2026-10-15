@@ -57,7 +57,7 @@ class Cluster:
         self.__data_list.append(datum)
         datum.color_id = self.__color_id
 
-    def absorb_cluster(self, other:Cluster):
+    def absorb_cluster(self, other:"Cluster"):
         for d in other.__data_list:
             self.add_datum(d)
 
